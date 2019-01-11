@@ -41,7 +41,7 @@ class ActorCriticNetwork(object):
       self.r = tf.placeholder("float", [None])
 
       #Discounted USF return
-      self.return_usf = tf.placeholder("float", [None,256])
+      self.return_usf = tf.placeholder("float", [None,512])
 
       # value loss (output)
       # learning rate for critic is half of actor's
@@ -200,8 +200,8 @@ class ActorCriticFFNetwork(ActorCriticNetwork):
       # target (input)
       self.t = tf.placeholder("float", [None, 2048, 1])
 
-      self.initial_lstm_state0 = tf.placeholder(tf.float32, [1, 256])
-      self.initial_lstm_state1 = tf.placeholder(tf.float32, [1, 256])
+      self.initial_lstm_state0 = tf.placeholder(tf.float32, [1, 512])
+      self.initial_lstm_state1 = tf.placeholder(tf.float32, [1, 512])
       self.initial_lstm_state = tf.contrib.rnn.LSTMStateTuple(self.initial_lstm_state0,
                                                               self.initial_lstm_state1)
 
@@ -227,33 +227,33 @@ class ActorCriticFFNetwork(ActorCriticNetwork):
         h_s_flat_1 = tf.nn.relu(tf.matmul(self.s_flat, self.W_fc1[key]) + self.b_fc1[key])
 
         # add one more fully connected layer with linear activation to be state_rep
-        self.W_fc1_s1[key] = self._fc_weight_variable([512, 256])
-        self.b_fc1_s1[key] = self._fc_bias_variable([256], 512)
+        self.W_fc1_s1[key] = self._fc_weight_variable([512, 512])
+        self.b_fc1_s1[key] = self._fc_bias_variable([512], 512)
         h_s_flat = tf.matmul(h_s_flat_1, self.W_fc1_s1[key]) + self.b_fc1_s1[key]
 
         h_t_flat_1 = tf.nn.relu(tf.matmul(self.t_flat, self.W_fc1_g[key]) + self.b_fc1_g[key])
 
         # add one more fully connected layer with linear activation to be target rep
-        self.W_fc1_t1[key] = self._fc_weight_variable([512, 256])
-        self.b_fc1_t1[key] = self._fc_bias_variable([256], 512)
+        self.W_fc1_t1[key] = self._fc_weight_variable([512, 512])
+        self.b_fc1_t1[key] = self._fc_bias_variable([512], 512)
         h_t_flat = tf.matmul(h_t_flat_1, self.W_fc1_t1[key]) + self.b_fc1_t1[key]
 
         h_fc1 = tf.concat(values=[h_s_flat, h_t_flat], axis=1)
 
         # shared fusion layer
-        self.W_fc2[key] = self._fc_weight_variable([512, 512])
-        self.b_fc2[key] = self._fc_bias_variable([512], 512)
+        self.W_fc2[key] = self._fc_weight_variable([1024, 512])
+        self.b_fc2[key] = self._fc_bias_variable([512], 1024)
         h_fc2 = tf.nn.relu(tf.matmul(h_fc1, self.W_fc2[key]) + self.b_fc2[key])
 
 
         #one more fc before reward Prediction
-        self.W_fc1_r1[key] = self._fc_weight_variable([256, 256])
-        self.b_fc1_r1[key] = self._fc_bias_variable([256], 256)
+        self.W_fc1_r1[key] = self._fc_weight_variable([512, 512])
+        self.b_fc1_r1[key] = self._fc_bias_variable([512], 512)
         h_t_flat_2 = tf.nn.relu(tf.matmul(h_t_flat, self.W_fc1_r1[key]) + self.b_fc1_r1[key])
 
         # Reward Vector Prediction Layer
-        self.W_fc1_rw[key] = self._fc_weight_variable([256, 256])
-        self.b_fc1_rw[key] = self._fc_bias_variable([256], 256)
+        self.W_fc1_rw[key] = self._fc_weight_variable([512, 512])
+        self.b_fc1_rw[key] = self._fc_bias_variable([512], 512)
         reward_vector = tf.matmul(h_t_flat_2, self.W_fc1_rw[key]) + self.b_fc1_rw[key]
         #reward_vector = tf.matmul(h_t_flat, self.W_fc1_rw[key]) + self.b_fc1_rw[key]
 
@@ -269,18 +269,18 @@ class ActorCriticFFNetwork(ActorCriticNetwork):
           with tf.variable_scope(scene_scope) as scope:
 
             # scene-specific adaptation layer - RNNNN
-            self.W_fc3[key] = self._fc_weight_variable([512, 256])
-            self.b_fc3[key] = self._fc_bias_variable([256], 512)
+            self.W_fc3[key] = self._fc_weight_variable([512, 512])
+            self.b_fc3[key] = self._fc_bias_variable([512], 512)
             h_fc3 = tf.nn.relu(tf.matmul(h_fc2, self.W_fc3[key]) + self.b_fc3[key])
 
 
             #[batch_size, max_time, depth] Unolling (This will only work in the training (Bootstrapping))
-            h_fc3_reshaped = tf.reshape(h_fc3 , [1, -1, 256]) #creating the batch as 4 consecative states(Unrolling)
+            h_fc3_reshaped = tf.reshape(h_fc3 , [1, -1, 512]) #creating the batch as 4 consecative states(Unrolling)
 
 
        
             # lstm
-            self.lstm[key] = tf.contrib.rnn.BasicLSTMCell(256, state_is_tuple=True)
+            self.lstm[key] = tf.contrib.rnn.BasicLSTMCell(512, state_is_tuple=True)
 
             #During the training time this will unroll for the 5 time steps
             lstm_outputs, self.lstm_state[key]  = tf.nn.dynamic_rnn(self.lstm[key],
@@ -293,12 +293,12 @@ class ActorCriticFFNetwork(ActorCriticNetwork):
 
 
 
-            lstm_outputs = tf.reshape(lstm_outputs, [-1,256]) #Converting them to a batch_size,1 to calculate loss
+            lstm_outputs = tf.reshape(lstm_outputs, [-1,512]) #Converting them to a batch_size,1 to calculate loss
 
 
             # weight for policy output layer
-            self.W_policy[key] = self._fc_weight_variable([256, action_size])
-            self.b_policy[key] = self._fc_bias_variable([action_size], 256)
+            self.W_policy[key] = self._fc_weight_variable([512, action_size])
+            self.b_policy[key] = self._fc_bias_variable([action_size], 512)
 
             # policy (output)
             pi_ = tf.matmul(lstm_outputs, self.W_policy[key]) + self.b_policy[key]
@@ -306,8 +306,8 @@ class ActorCriticFFNetwork(ActorCriticNetwork):
 
 
             # weight for USF output layer
-            self.W_usf[key] = self._fc_weight_variable([256, 256])
-            self.b_usf[key] = self._fc_bias_variable([256], 256)
+            self.W_usf[key] = self._fc_weight_variable([512, 512])
+            self.b_usf[key] = self._fc_bias_variable([512], 512)
 
             #usf(Output)
             usf_ = tf.matmul(lstm_outputs, self.W_usf[key]) + self.b_usf[key]
@@ -331,8 +331,8 @@ class ActorCriticFFNetwork(ActorCriticNetwork):
         
 
   def reset_state(self):
-    self.lstm_state_out = tf.contrib.rnn.LSTMStateTuple(np.zeros([1, 256]),
-                                                        np.zeros([1, 256]))
+    self.lstm_state_out = tf.contrib.rnn.LSTMStateTuple(np.zeros([1, 512]),
+                                                        np.zeros([1, 512]))
 
 
   def run_policy_and_value(self, sess, state, target,scopes):
