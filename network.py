@@ -281,6 +281,7 @@ class ActorCriticFFNetwork(ActorCriticNetwork):
        
             # lstm
             self.lstm[key] = tf.contrib.rnn.BasicLSTMCell(512, state_is_tuple=True)
+            #tf.contrib.cudnn_rnn.CudnnLSTM(num_layers=1, num_units=512)##tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(512,name="basic_lstm_cell")
 
             #During the training time this will unroll for the 5 time steps
             lstm_outputs, self.lstm_state[key]  = tf.nn.dynamic_rnn(self.lstm[key],
@@ -354,7 +355,7 @@ class ActorCriticFFNetwork(ActorCriticNetwork):
   def run_policy(self, sess, state, target,scopes):
     k = self._get_key(scopes[:2])
     # This run_policy() is used for displaying the result with display tool.    
-    pi_out, self.lstm_state_out = sess.run( [self.pi[key], self.lstm_state[key]],
+    pi_out, self.lstm_state_out = sess.run( [self.pi[k], self.lstm_state[k]],
                                             feed_dict = {self.s : [state], self.t: [target],
                                                          self.initial_lstm_state0 : self.lstm_state_out[0],
                                                          self.initial_lstm_state1 : self.lstm_state_out[1],
