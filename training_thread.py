@@ -5,6 +5,7 @@ import random
 import time
 import sys
 import pdb
+import csv
 
 from utils.accum_trainer import AccumTrainer
 from scene_loader import THORDiscreteEnvironment as Environment
@@ -226,7 +227,13 @@ class A3CTrainingThread(object):
       if terminal:
         terminal_end = True
         sys.stdout.write("time %d | thread #%d | scene %s | target #%s\n%s %s episode reward = %.3f\n%s %s episode length = %d\n%s %s episode max Q  = %.3f\n" % (global_t, self.thread_index, self.scene_scope, self.task_scope, self.scene_scope, self.task_scope, self.episode_reward, self.scene_scope, self.task_scope, self.episode_length, self.scene_scope, self.task_scope, self.episode_max_q))
-
+        
+        oneResult =  [global_t, self.thread_index, self.scene_scope, self.task_scope, self.episode_reward, self.episode_length, self.episode_max_q]
+        with open('trainingOutput.csv','a+') as fp:
+          # fd.write(oneResult)
+          wr = csv.writer(fp)
+          wr.writerow(oneResult)
+        
         summary_values = {
           "episode_reward_input": self.episode_reward,
           "episode_length_input": float(self.episode_length),
