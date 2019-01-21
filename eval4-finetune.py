@@ -57,10 +57,10 @@ if __name__ == '__main__':
     #   'living_room_08' : map(str, range(i, 468,468//numSplits))
     # }
     TASK_LIST = {
-      'bathroom_02'    : set(map(str, random.sample(range(0, 180,1),5))+['26', '37', '43', '53', '69']),
-      'bedroom_04'     : set(map(str, random.sample(range(0, 408,1),5))+['134', '264', '320', '384', '387']),
-      'kitchen_02'     : set(map(str, random.sample(range(0, 676,1),5))+['90', '136', '157', '207', '329']),
-      'living_room_08' : set(map(str, random.sample(range(0, 468,1),5))+['92', '135', '193', '228', '254'])
+      'bathroom_02'    : set(list(map(str, random.sample(range(0, 180,1),5)))+['26', '37', '43', '53', '69']),
+      'bedroom_04'     : set(list(map(str, random.sample(range(0, 408,1),5)))+['134', '264', '320', '384', '387']),
+      'kitchen_02'     : set(list(map(str, random.sample(range(0, 676,1),5)))+['90', '136', '157', '207', '329']),
+      'living_room_08' : set(list(map(str, random.sample(range(0, 468,1),5)))+['92', '135', '193', '228', '254'])
     }
 
 
@@ -135,9 +135,9 @@ if __name__ == '__main__':
       episode_max_q_input  = tf.placeholder("float")
 
       scalar_summaries = [
-        tf.summary.scalar(key+"/Episode Reward", episode_reward_input),
-        tf.summary.scalar(key+"/Episode Length", episode_length_input),
-        tf.summary.scalar(key+"/Episode Max Q", episode_max_q_input)
+        tf.summary.scalar(key+"/Episode_Reward", episode_reward_input),
+        tf.summary.scalar(key+"/Episode_Length", episode_length_input),
+        tf.summary.scalar(key+"/Episode_Max_Q", episode_max_q_input)
       ]
 
       summary_op[key] = tf.summary.merge(scalar_summaries)
