@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Shamane and Rivindu
+
 import tensorflow as tf
 import threading
 import numpy as np
