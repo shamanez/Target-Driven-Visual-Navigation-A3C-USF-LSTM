@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Shamane and Rivindu worked on this. But mostly shamanez
 import tensorflow as tf
 import threading
 import numpy as np
